@@ -5,6 +5,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 
 from llm_helper import add_documents_batched, get_embeddings
+from langchain_core.tools import tool
 
 PERSIST_DIR = "./chroma_db"
 SOURCE_URL = "https://en.wikipedia.org/wiki/Artificial_intelligence"
@@ -44,3 +45,17 @@ print("\n🔍 --- TEST SEARCH RESULTS ---")
 for i, doc in enumerate(similar_docs):
     print(f"Chunk {i+1}:\n{doc.page_content[:200]}...")
     print("-" * 30)
+
+retriever = vector_store.as_retriever()
+@tool
+def query_local_research_db(query:str)->str:
+    """
+    Search the internal local research database regarding Artificial Intelligence. 
+    Use this tool to find concepts, history, and definitions about AI.
+    """
+    matching_docs = retriever.invoke(query)
+    # Combine matching chunks into one text block to return to the AI
+    combined_text = "\n\n".join([doc.page_content for doc in matching_docs])
+    return combined_text
+
+print("✅ Tool 'query_local_research_db' is compiled and ready!")
